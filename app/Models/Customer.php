@@ -11,4 +11,9 @@ class Customer extends Model
     use HasFactory, SoftDeletes;
 
     protected $guarded;
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', '!=', 'trash');
+    }
 }

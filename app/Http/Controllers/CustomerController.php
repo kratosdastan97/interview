@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CustomerRequest;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -10,7 +11,7 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        $customers = Customer::all();
+        $customers = Customer::active()->get('name', 'last_name', 'address', 'description', 'id_reg','id_com');
         return response()->json($customers);
     }
 
@@ -27,21 +28,13 @@ class CustomerController extends Controller
         return response()->json($customer, 201);
     }
 
-    public function show($id)
+    public function show(Customer $customer)
     {
-        $customer = Customer::findOrFail($id);
-        return response()->json($customer);
+        return response()->json($customer->select('name', 'last_name', 'address', 'description', 'id_reg','id_com'));
     }
 
-    public function update(Request $request, $id)
+    public function update( Customer $customer, CustomerRequest $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'phone' => 'required'
-        ]);
-
-        $customer = Customer::findOrFail($id);
         $customer->update($request->all());
 
         Log::info('Actualización de usuario', ['IP' => request()->ip(), 'Datos' => $request->all()]);
@@ -50,8 +43,13 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer)
     {
-        Log::info('Eliminación de usuario', ['IP' => request()->ip(), 'Datos' => $customer]);
-        $customer->delete();
-        return response()->json(null, 204);
+        if($customer->status != 'trash'){
+            $customer->update(['status'=> 'trash']);
+            Log::info('Eliminación de usuario', ['IP' => request()->ip(), 'Datos' => $customer]);
+            $customer->delete();
+            return response()->json(null, 204);
+        }
+        return response()->json(['message' => 'Registro no existe'], 404);
+
     }
 }
