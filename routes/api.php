@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\RegionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,8 +24,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::resource('customers', 'CustomerController')->except('update');
-Route::resource('regions', 'RegionController')->except('update');
+Route::resource('customers', CustomerController::class)->except('update');
+Route::resource('regions', RegionController::class)->except('update');
 
 
 

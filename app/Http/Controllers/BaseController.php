@@ -39,11 +39,14 @@ class BaseController extends Controller
         ]);
     }
 
+
     /**
-     * @return false
+     * @return JsonResponse
      */
-    public function error(): bool
+    public function error(): JsonResponse
     {
-        return false;
+        return response()->json([
+            'success' => false
+        ]);
     }
 }

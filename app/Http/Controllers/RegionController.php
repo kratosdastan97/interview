@@ -13,8 +13,12 @@ class RegionController extends BaseController
      */
     public function index(): JsonResponse
     {
-        $regions = Region::all();
-        return $this->successData($regions);
+        try {
+            $regions = Region::all();
+            return $this->successData($regions);
+        } catch (\Exception $e) {
+            return $this->error();
+        }
     }
 
 
@@ -24,13 +28,16 @@ class RegionController extends BaseController
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'description' => 'required',
-            'status' => 'required'
-        ]);
-
-        Region::create($request->all());
-        return $this->success();
+        try {
+            $request->validate([
+                'description' => 'required',
+                'status' => 'required'
+            ]);
+            Region::create($request->all());
+            return $this->success();
+        } catch (\Exception $e) {
+            return $this->error();
+        }
     }
 
 
@@ -41,13 +48,16 @@ class RegionController extends BaseController
      */
     public function update(Request $request, Region $region): JsonResponse
     {
-        $request->validate([
-            'description' => 'required',
-            'status' => 'required'
-        ]);
-
-        $region->update($request->all());
-        return $this->success();
+        try {
+            $request->validate([
+                'description' => 'required',
+                'status' => 'required'
+            ]);
+            $region->update($request->all());
+            return $this->success();
+        } catch (\Exception $e) {
+            return $this->error();
+        }
     }
 
     /**
@@ -56,7 +66,11 @@ class RegionController extends BaseController
      */
     public function destroy(Region $region): JsonResponse
     {
-        $region->delete();
-        return $this->success();
+        try {
+            $region->delete();
+            return $this->success();
+        } catch (\Exception $e) {
+            return $this->error();
+        }
     }
 }

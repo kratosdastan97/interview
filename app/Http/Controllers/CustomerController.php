@@ -7,6 +7,7 @@ use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Mockery\Exception;
 
 class CustomerController extends BaseController
 {
@@ -15,8 +16,13 @@ class CustomerController extends BaseController
      */
     public function index(): JsonResponse
     {
-        $customers = Customer::active()->get('name', 'last_name', 'address', 'description', 'id_reg','id_com');
-        return $this->successData($customers);
+        try {
+            $customers = Customer::active()->get('name', 'last_name', 'address', 'description', 'id_reg', 'id_com');
+            return $this->successData($customers);
+        } catch (\Exception $e) {
+            return $this->error();
+        }
+
     }
 
     /**
@@ -25,14 +31,18 @@ class CustomerController extends BaseController
      */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'phone' => 'required'
-        ]);
-        Customer::create($request->all());
-        Log::info('Creación de usuario', ['IP' => request()->ip(), 'Datos' => $request->all()]);
-        return $this->success();
+        try {
+            $request->validate([
+                'name' => 'required',
+                'email' => 'required|email',
+                'phone' => 'required'
+            ]);
+            Customer::create($request->all());
+            Log::info('Creación de usuario', ['IP' => request()->ip(), 'Datos' => $request->all()]);
+            return $this->success();
+        } catch (\Exception $e) {
+            return $this->error();
+        }
     }
 
     /**
@@ -41,7 +51,11 @@ class CustomerController extends BaseController
      */
     public function show(Customer $customer): JsonResponse
     {
-        return $this->successData($customer->select('name', 'last_name', 'address', 'description', 'id_reg','id_com'));
+        try {
+            return $this->successData($customer->select('name', 'last_name', 'address', 'description', 'id_reg', 'id_com'));
+        } catch (\Exception $e) {
+            return $this->error();
+        }
     }
 
     /**
@@ -51,24 +65,31 @@ class CustomerController extends BaseController
      */
     public function update(Customer $customer, CustomerRequest $request): JsonResponse
     {
-        $customer->update($request->all());
-
-        Log::info('Actualización de usuario', ['IP' => request()->ip(), 'Datos' => $request->all()]);
-        return $this->success();
+        try {
+            $customer->update($request->all());
+            Log::info('Actualización de usuario', ['IP' => request()->ip(), 'Datos' => $request->all()]);
+            return $this->success();
+        } catch (\Exception $e) {
+            return $this->error();
+        }
     }
 
     /**
      * @param Customer $customer
      * @return JsonResponse
      */
-    public function destroy(Customer $customer)
+    public function destroy(Customer $customer): JsonResponse
     {
-        if($customer->status != 'trash'){
-            $customer->update(['status'=> 'trash']);
-            Log::info('Eliminación de usuario', ['IP' => request()->ip(), 'Datos' => $customer]);
-            $customer->delete();
-            return $this->success();
+        try {
+            if ($customer->status != 'trash') {
+                $customer->update(['status' => 'trash']);
+                Log::info('Eliminación de usuario', ['IP' => request()->ip(), 'Datos' => $customer]);
+                $customer->delete();
+                return $this->success();
+            }
+            return $this->successMessage('Registro no existe');
+        } catch (\Exception $e) {
+            return $this->error();
         }
-        return $this->successMessage('Registro no existe');
     }
 }
