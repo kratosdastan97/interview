@@ -23,5 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::resource('customers', 'CustomerController')->except('update');
+Route::resource('regions', 'RegionController')->except('update');
+
 
 

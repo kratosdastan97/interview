@@ -4,52 +4,71 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomerRequest;
 use App\Models\Customer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class CustomerController extends Controller
+class CustomerController extends BaseController
 {
-    public function index()
+    /**
+     * @return JsonResponse
+     */
+    public function index(): JsonResponse
     {
         $customers = Customer::active()->get('name', 'last_name', 'address', 'description', 'id_reg','id_com');
-        return response()->json($customers);
+        return $this->successData($customers);
     }
 
-    public function store(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function store(Request $request): JsonResponse
     {
         $request->validate([
             'name' => 'required',
             'email' => 'required|email',
             'phone' => 'required'
         ]);
-
-        $customer = Customer::create($request->all());
+        Customer::create($request->all());
         Log::info('Creación de usuario', ['IP' => request()->ip(), 'Datos' => $request->all()]);
-        return response()->json($customer, 201);
+        return $this->success();
     }
 
-    public function show(Customer $customer)
+    /**
+     * @param Customer $customer
+     * @return JsonResponse
+     */
+    public function show(Customer $customer): JsonResponse
     {
-        return response()->json($customer->select('name', 'last_name', 'address', 'description', 'id_reg','id_com'));
+        return $this->successData($customer->select('name', 'last_name', 'address', 'description', 'id_reg','id_com'));
     }
 
-    public function update( Customer $customer, CustomerRequest $request)
+    /**
+     * @param Customer $customer
+     * @param CustomerRequest $request
+     * @return JsonResponse
+     */
+    public function update(Customer $customer, CustomerRequest $request): JsonResponse
     {
         $customer->update($request->all());
 
         Log::info('Actualización de usuario', ['IP' => request()->ip(), 'Datos' => $request->all()]);
-        return response()->json($customer, 200);
+        return $this->success();
     }
 
+    /**
+     * @param Customer $customer
+     * @return JsonResponse
+     */
     public function destroy(Customer $customer)
     {
         if($customer->status != 'trash'){
             $customer->update(['status'=> 'trash']);
             Log::info('Eliminación de usuario', ['IP' => request()->ip(), 'Datos' => $customer]);
             $customer->delete();
-            return response()->json(null, 204);
+            return $this->success();
         }
-        return response()->json(['message' => 'Registro no existe'], 404);
-
+        return $this->successMessage('Registro no existe');
     }
 }
